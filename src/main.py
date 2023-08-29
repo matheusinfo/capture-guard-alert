@@ -1,10 +1,15 @@
-import cv2, time, base64, os, psycopg2
+import cv2, time, base64, os, psycopg2, pygame
 from datetime import datetime
 from dotenv import load_dotenv
 from database.connection import connect_database
 from database.migrations import create_tables
 from database.seeds import seed_tables
 from database.querys import insert_picture
+
+# Init sound
+pygame.init()
+pygame.mixer.init()
+pygame.mixer.music.load('./src/sounds/alert.mp3')
 
 # Load environment variables
 load_dotenv()
@@ -15,8 +20,9 @@ SAVE_LOCAL = os.getenv('SAVE_LOCAL')
 SAVE_DATABASE = os.getenv('SAVE_DATABASE')
 
 # Run migrations and seeds
-create_tables()
-seed_tables()
+if(SAVE_DATABASE):
+    create_tables()
+    seed_tables()
   
 # Initialize variables
 capturing = False
@@ -25,7 +31,7 @@ minimum_area = 10000
 frames_counter_limit = 30
 initial_background = None
 folder_path_name = "images"
-alert_frames = 25
+alert_frames = 5
 alert_frames_counter = 0
 
 # Open the camera
@@ -72,6 +78,11 @@ while True:
             print('Saving image...')
             frames_counter = 0
             alert_frames_counter += 1
+
+            # Sound alert
+            if(ALERT_SOUND == 'true'):
+                print('Playing alert sound...')
+                pygame.mixer.music.play()
 
             # Encode and save the image
             _, buffer = cv2.imencode('.jpg', neutral_frame)
