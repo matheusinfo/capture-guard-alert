@@ -5,5 +5,5 @@ A motion capture and alert system that uses a camera to monitor changes in a des
 ## Getting Started
 
 1. Clone the repository
-2. Install dependencies
-3. run `python3 index.py` 
+2. run `pip install -r requirements.txt`
+3. run `python3 src/main.py` 

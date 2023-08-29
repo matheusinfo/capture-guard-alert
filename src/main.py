@@ -1,6 +1,23 @@
-import cv2, time, base64, os
+import cv2, time, base64, os, psycopg2
 from datetime import datetime
+from dotenv import load_dotenv
+from database.connection import connect_database
+from database.migrations import create_tables
+from database.seeds import seed_tables
+from database.querys import insert_picture
 
+# Load environment variables
+load_dotenv()
+
+# Get environment variables
+ENVIRONMENT = os.getenv('ENVIRONMENT')
+SAVE_LOCAL = os.getenv('SAVE_LOCAL')
+SAVE_DATABASE = os.getenv('SAVE_DATABASE')
+
+# Run migrations and seeds
+create_tables()
+seed_tables()
+  
 # Initialize variables
 capturing = False
 frames_counter = 0
@@ -45,8 +62,9 @@ while True:
     for contour in contours:
         if cv2.contourArea(contour) > minimum_area:
             capturing = True
-            (coordinate_x, coordinate_y, width, height) = cv2.boundingRect(contour)
-            cv2.rectangle(neutral_frame, (coordinate_x, coordinate_y), (coordinate_x + width, coordinate_y + height), (0, 255, 0), 3)
+            if(ENVIRONMENT == 'dev'):
+                (coordinate_x, coordinate_y, width, height) = cv2.boundingRect(contour)
+                cv2.rectangle(neutral_frame, (coordinate_x, coordinate_y), (coordinate_x + width, coordinate_y + height), (0, 255, 0), 3)
 
     # If capturing is enabled
     if capturing:
@@ -57,8 +75,15 @@ while True:
 
             # Encode and save the image
             _, buffer = cv2.imencode('.jpg', neutral_frame)
-            with open(os.path.join(folder_path_name, datetime.now().strftime('%H:%M:%S') + ".jpg"), "wb") as file:
-                file.write(buffer)
+            if(SAVE_LOCAL == 'true'):
+                print('Saving local...')
+                with open(os.path.join(folder_path_name, datetime.now().strftime('%H:%M:%S') + ".jpg"), "wb") as file:
+                    file.write(buffer)
+
+            if(SAVE_DATABASE == 'true'):
+                print('Saving database...')
+                base64_str = base64.b64encode(buffer).decode('utf-8')
+                insert_picture(base64_str)
 
         capturing = False
         frames_counter += 1
