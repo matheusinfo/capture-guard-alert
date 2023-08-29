@@ -18,6 +18,7 @@ load_dotenv()
 ENVIRONMENT = os.getenv('ENVIRONMENT')
 SAVE_LOCAL = os.getenv('SAVE_LOCAL')
 SAVE_DATABASE = os.getenv('SAVE_DATABASE')
+ALERT_SOUND = os.getenv('ALERT_SOUND')
 
 # Run migrations and seeds
 if(SAVE_DATABASE):
